@@ -65,21 +65,16 @@ condition: []
 action:
   - choose:
       - conditions:
-          - condition: state
-            entity_id: !input person_entity
-            state: "in_zone"
-          - condition: state
-            entity_id: !input zone_entity
-            state: "home"
+          - condition: template
+            value_template: "{{ trigger.entity_id in state_attr(zone_entity, 'persons') }}"
         sequence:
           - service: switch.turn_on
             target: !input switches_on_presence
           - service: light.turn_on
             target: !input lights_on_presence
       - conditions:
-          - condition: state
-            entity_id: !input person_entity
-            state: "not_home"
+          - condition: template
+            value_template: "{{ trigger.entity_id not in state_attr(zone_entity, 'persons') }}"
         sequence:
           - service: switch.turn_off
             target: !input switches_on_absence
