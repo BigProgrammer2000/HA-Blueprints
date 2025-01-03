@@ -1,0 +1,88 @@
+blueprint:
+  name: Presence-Based Automation
+  description: >
+    Schaltet basierend auf der Anwesenheit oder Abwesenheit einer Person in einer bestimmten Zone beliebig viele Switch- und Light-Entitäten ein oder aus.
+  domain: automation
+  input:
+    person_entity:
+      name: Person Sensor
+      description: Der Personen-Sensor, der überwacht werden soll.
+      selector:
+        entity:
+          domain: person
+    zone_entity:
+      name: Zone
+      description: Die Zone, die überwacht werden soll.
+      selector:
+        entity:
+          domain: zone
+    switches_on_presence:
+      name: Switches bei Anwesenheit
+      description: Die Switch-Entitäten, die bei Anwesenheit eingeschaltet werden sollen.
+      selector:
+        target:
+          entity:
+            domain: switch
+      default: []
+    lights_on_presence:
+      name: Lichter bei Anwesenheit
+      description: Die Light-Entitäten, die bei Anwesenheit eingeschaltet werden sollen.
+      selector:
+        target:
+          entity:
+            domain: light
+      default: []
+    switches_on_absence:
+      name: Switches bei Abwesenheit
+      description: Die Switch-Entitäten, die bei Abwesenheit ausgeschaltet werden sollen.
+      selector:
+        target:
+          entity:
+            domain: switch
+      default: []
+    lights_on_absence:
+      name: Lichter bei Abwesenheit
+      description: Die Light-Entitäten, die bei Abwesenheit ausgeschaltet werden sollen.
+      selector:
+        target:
+          entity:
+            domain: light
+      default: []
+
+trigger:
+  - platform: state
+    entity_id: !input person_entity
+
+variables:
+  zone_entity: !input zone_entity
+  switches_on_presence: !input switches_on_presence
+  lights_on_presence: !input lights_on_presence
+  switches_on_absence: !input switches_on_absence
+  lights_on_absence: !input lights_on_absence
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: !input person_entity
+            state: "in_zone"
+          - condition: state
+            entity_id: !input zone_entity
+            state: "home"
+        sequence:
+          - service: switch.turn_on
+            target: !input switches_on_presence
+          - service: light.turn_on
+            target: !input lights_on_presence
+      - conditions:
+          - condition: state
+            entity_id: !input person_entity
+            state: "not_home"
+        sequence:
+          - service: switch.turn_off
+            target: !input switches_on_absence
+          - service: light.turn_off
+            target: !input lights_on_absence
+mode: single
