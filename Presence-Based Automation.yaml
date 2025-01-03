@@ -46,7 +46,7 @@ blueprint:
         target:
           entity:
             domain: switch
-      default: []
+      default: {}
     lights_on_presence_always:
       name: Lichter bei Anwesenheit
       description: Die Light-Entitäten, die immer bei Anwesenheit eingeschaltet werden sollen, unabhängig von der Helligkeit.
@@ -54,7 +54,7 @@ blueprint:
         target:
           entity:
             domain: light
-      default: []
+      default: {}
     lights_on_presence:
       name: Lichter bei Anwesenheit abhängig von der Helligkeit
       description: Die Light-Entitäten, die bei Anwesenheit eingeschaltet werden sollen, abhängig von der Helligkei
@@ -62,7 +62,7 @@ blueprint:
         target:
           entity:
             domain: light
-      default: []
+      default: {}
     switches_on_absence:
       name: Schalter bei Abwesenheit
       description: Die Switch-Entitäten, die bei Abwesenheit immer ausgeschaltet werden sollen.
@@ -70,7 +70,7 @@ blueprint:
         target:
           entity:
             domain: switch
-      default: []
+      default: {}
     lights_on_absence:
       name: Lichter bei Abwesenheit
       description: Die Light-Entitäten, die bei Abwesenheit immer ausgeschaltet werden sollen.
@@ -78,7 +78,7 @@ blueprint:
         target:
           entity:
             domain: light
-      default: []
+      default: {}
     conditional_switches_on_absence:
       name: Switches bei Abwesenheit abhänging von einem Gerät
       description: Die Switch-Entitäten, die nur ausgeschaltet werden, wenn ein Binary-Sensor den Status OFF hat.
@@ -86,7 +86,7 @@ blueprint:
         target:
           entity:
             domain: switch
-      default: []
+      default: {}
 
 
 trigger:
