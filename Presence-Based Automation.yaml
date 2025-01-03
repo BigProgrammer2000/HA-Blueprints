@@ -30,33 +30,39 @@ blueprint:
           min: 0
           max: 1000
           unit_of_measurement: "lx"
+    binary_sensor:
+      name: Geräte Sensor
+      description: Der Binary-Sensor, dessen Status überprüft werden soll um Schalter bei abwesenheit nicht aus zu schalten.
+      selector:
+        entity:
+          domain: binary_sensor
     switches_on_presence:
-      name: Switches bei Anwesenheit
+      name: Schalter bei Anwesenheit
       description: Die Switch-Entitäten, die bei Anwesenheit eingeschaltet werden sollen.
       selector:
         target:
           entity:
             domain: switch
       default: []
-    lights_on_presence:
-      name: Lichter bei Anwesenheit
-      description: Die Light-Entitäten, die bei Anwesenheit eingeschaltet werden sollen.
-      selector:
-        target:
-          entity:
-            domain: light
-      default: []
     lights_on_presence_always:
-      name: Lichter immer bei Anwesenheit
+      name: Lichter bei Anwesenheit
       description: Die Light-Entitäten, die immer bei Anwesenheit eingeschaltet werden sollen, unabhängig von der Helligkeit.
       selector:
         target:
           entity:
             domain: light
       default: []
+    lights_on_presence:
+      name: Lichter bei Anwesenheit abhängig von der Helligkeit
+      description: Die Light-Entitäten, die bei Anwesenheit eingeschaltet werden sollen, abhängig von der Helligkei
+      selector:
+        target:
+          entity:
+            domain: light
+      default: []
     switches_on_absence:
-      name: Switches bei Abwesenheit
-      description: Die Switch-Entitäten, die bei Abwesenheit ausgeschaltet werden sollen.
+      name: Schalter bei Abwesenheit
+      description: Die Switch-Entitäten, die bei Abwesenheit immer ausgeschaltet werden sollen.
       selector:
         target:
           entity:
@@ -64,26 +70,21 @@ blueprint:
       default: []
     lights_on_absence:
       name: Lichter bei Abwesenheit
-      description: Die Light-Entitäten, die bei Abwesenheit ausgeschaltet werden sollen.
+      description: Die Light-Entitäten, die bei Abwesenheit immer ausgeschaltet werden sollen.
       selector:
         target:
           entity:
             domain: light
       default: []
     conditional_switches_on_absence:
-      name: Zusätzliche Switches bei Abwesenheit
-      description: Die Switch-Entitäten, die nur ausgeschaltet werden, wenn ein bestimmter Binary-Sensor den Status OFF hat.
+      name: Switches bei Abwesenheit abhänging von einem Gerät
+      description: Die Switch-Entitäten, die nur ausgeschaltet werden, wenn ein Binary-Sensor den Status OFF hat.
       selector:
         target:
           entity:
             domain: switch
       default: []
-    binary_sensor:
-      name: Binary Sensor
-      description: Der Binary-Sensor, dessen Status überprüft werden soll.
-      selector:
-        entity:
-          domain: binary_sensor
+
 
 trigger:
   - platform: state
