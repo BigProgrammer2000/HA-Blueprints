@@ -117,6 +117,8 @@ action:
             target: !input switches_on_presence
           - service: light.turn_on
             target: !input lights_on_presence_always
+            data:
+              brightness_pct: 100
           - choose:
               - conditions:
                   - condition: template
@@ -124,6 +126,8 @@ action:
                 sequence:
                   - service: light.turn_on
                     target: !input lights_on_presence
+                    data:
+                      brightness_pct: 100
       - conditions:
           - condition: template
             value_template: "{{ trigger.entity_id not in state_attr(zone_entity, 'persons') }}"
