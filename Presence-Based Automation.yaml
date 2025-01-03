@@ -22,6 +22,7 @@ blueprint:
       selector:
         entity:
           domain: sensor
+      default: ""
     brightness_threshold:
       name: Helligkeits-Schwellenwert
       description: Der Helligkeitswert, unter dem die Lichter eingeschaltet werden.
@@ -30,12 +31,14 @@ blueprint:
           min: 0
           max: 1000
           unit_of_measurement: "lx"
+      default: 0
     binary_sensor:
       name: Geräte Sensor
       description: Der Binary-Sensor, dessen Status überprüft werden soll um Schalter bei abwesenheit nicht aus zu schalten.
       selector:
         entity:
           domain: binary_sensor
+      default: ""
     switches_on_presence:
       name: Schalter bei Anwesenheit
       description: Die Switch-Entitäten, die bei Anwesenheit eingeschaltet werden sollen.
@@ -116,9 +119,8 @@ action:
             target: !input lights_on_presence_always
           - choose:
               - conditions:
-                  - condition: numeric_state
-                    entity_id: !input light_sensor
-                    below: !input brightness_threshold
+                  - condition: template
+                    value_template: "{{ light_sensor and (states(light_sensor) | float < brightness_threshold) }}"
                 sequence:
                   - service: light.turn_on
                     target: !input lights_on_presence
@@ -132,9 +134,8 @@ action:
             target: !input lights_on_absence
           - choose:
               - conditions:
-                  - condition: state
-                    entity_id: !input binary_sensor
-                    state: "off"
+                  - condition: template
+                    value_template: "{{ binary_sensor and is_state(binary_sensor, 'off') }}"
                 sequence:
                   - service: switch.turn_off
                     target: !input conditional_switches_on_absence
