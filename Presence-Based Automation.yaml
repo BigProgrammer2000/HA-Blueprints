@@ -16,6 +16,20 @@ blueprint:
       selector:
         entity:
           domain: zone
+    light_sensor:
+      name: Licht Sensor
+      description: Der Lichtsensor, der für die Helligkeitsüberprüfung verwendet wird.
+      selector:
+        entity:
+          domain: sensor
+    brightness_threshold:
+      name: Helligkeits-Schwellenwert
+      description: Der Helligkeitswert, unter dem die Lichter eingeschaltet werden.
+      selector:
+        number:
+          min: 0
+          max: 1000
+          unit_of_measurement: "lx"
     switches_on_presence:
       name: Switches bei Anwesenheit
       description: Die Switch-Entitäten, die bei Anwesenheit eingeschaltet werden sollen.
@@ -27,6 +41,14 @@ blueprint:
     lights_on_presence:
       name: Lichter bei Anwesenheit
       description: Die Light-Entitäten, die bei Anwesenheit eingeschaltet werden sollen.
+      selector:
+        target:
+          entity:
+            domain: light
+      default: []
+    lights_on_presence_always:
+      name: Lichter immer bei Anwesenheit
+      description: Die Light-Entitäten, die immer bei Anwesenheit eingeschaltet werden sollen, unabhängig von der Helligkeit.
       selector:
         target:
           entity:
@@ -48,6 +70,20 @@ blueprint:
           entity:
             domain: light
       default: []
+    conditional_switches_on_absence:
+      name: Zusätzliche Switches bei Abwesenheit
+      description: Die Switch-Entitäten, die nur ausgeschaltet werden, wenn ein bestimmter Binary-Sensor den Status OFF hat.
+      selector:
+        target:
+          entity:
+            domain: switch
+      default: []
+    binary_sensor:
+      name: Binary Sensor
+      description: Der Binary-Sensor, dessen Status überprüft werden soll.
+      selector:
+        entity:
+          domain: binary_sensor
 
 trigger:
   - platform: state
@@ -55,10 +91,15 @@ trigger:
 
 variables:
   zone_entity: !input zone_entity
+  light_sensor: !input light_sensor
+  brightness_threshold: !input brightness_threshold
   switches_on_presence: !input switches_on_presence
   lights_on_presence: !input lights_on_presence
+  lights_on_presence_always: !input lights_on_presence_always
   switches_on_absence: !input switches_on_absence
   lights_on_absence: !input lights_on_absence
+  conditional_switches_on_absence: !input conditional_switches_on_absence
+  binary_sensor: !input binary_sensor
 
 condition: []
 
@@ -71,7 +112,15 @@ action:
           - service: switch.turn_on
             target: !input switches_on_presence
           - service: light.turn_on
-            target: !input lights_on_presence
+            target: !input lights_on_presence_always
+          - choose:
+              - conditions:
+                  - condition: numeric_state
+                    entity_id: !input light_sensor
+                    below: !input brightness_threshold
+                sequence:
+                  - service: light.turn_on
+                    target: !input lights_on_presence
       - conditions:
           - condition: template
             value_template: "{{ trigger.entity_id not in state_attr(zone_entity, 'persons') }}"
@@ -80,4 +129,12 @@ action:
             target: !input switches_on_absence
           - service: light.turn_off
             target: !input lights_on_absence
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: !input binary_sensor
+                    state: "off"
+                sequence:
+                  - service: switch.turn_off
+                    target: !input conditional_switches_on_absence
 mode: single
