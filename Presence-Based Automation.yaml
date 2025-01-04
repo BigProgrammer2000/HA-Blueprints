@@ -10,73 +10,79 @@ blueprint:
       selector:
         entity:
           domain: person
-    light_sensor:
-      name: Licht Sensor
-      description: Der Lichtsensor, der für die Helligkeitsüberprüfung verwendet wird (optional).
-      selector:
-        entity:
-          domain: sensor
-      default: ""
-    brightness_threshold:
-      name: Helligkeits-Schwellenwert
-      description: Der Helligkeitswert, unter dem die Lichter eingeschaltet werden (optional).
-      selector:
-        number:
-          min: 0
-          max: 1000
-          unit_of_measurement: "lx"
-      default: 0
-    binary_sensor:
-      name: Binary Sensor
-      description: Der Binary-Sensor, dessen Status überprüft werden soll (optional).\n OFF = ausschalten; ON = nichts unternehmen
-      selector:
-        entity:
-          domain: binary_sensor
-      default: ""
-    entities_on_presence:
-      name: Entitäten bei Anwesenheit einschalten
-      description: Die Entitäten, die bei Anwesenheit eingeschaltet werden sollen.
-      selector:
-        target:
-          entity:
-            domain:
-              - switch
-              - light
-              - media_player
-      default: {}
-    special_entities_on_presence:
-      name: Entitäten bei Anwesenheit nach Helligkeit einschalten
-      description: Die Entitäten, die bei Anwesenheit unter berücksichtigung der Helligkeit eingeschaltet werden sollen.
-      selector:
-        target:
-          entity:
-            domain:
-              - switch
-              - light
-              - media_player
-      default: {}
-    entities_on_absence:
-      name: Entitäten bei Abwesenheit ausschalten
-      description: Die Entitäten, die bei Abwesenheit ausgeschaltet werden sollen.
-      selector:
-        target:
-          entity:
-            domain:
-              - switch
-              - light
-              - media_player
-      default: {}
-    special_entities_on_absence:
-      name: Entitäten bei Abwesenheit gesteuert ausschalten
-      description: Die Entitäten, die bei Abwesenheit unter berücksichtigung eines Binary-Sensors ausgeschaltet werden sollen.
-      selector:
-        target:
-          entity:
-            domain:
-              - switch
-              - light
-              - media_player
-      default: {}
+    home_settings:
+      name: Anwesend
+      icon: mdi:home-import-outline
+      description: Hier sind alle Einstellungen zur Anwesenheit zu finden.
+      collapsed: true
+      input:
+        light_sensor:
+          name: Licht Sensor
+          description: Der Lichtsensor, der für die Helligkeitsüberprüfung verwendet wird (optional).
+          selector:
+            entity:
+              domain: sensor
+          default: ""
+        brightness_threshold:
+          name: Helligkeits-Schwellenwert
+          description: Der Helligkeitswert, unter dem die Lichter eingeschaltet werden (optional).
+          selector:
+            number:
+              min: 0
+              max: 1000
+              unit_of_measurement: "lx"
+          default: 0
+        entities_on_presence:
+          name: Entitäten bei Anwesenheit einschalten
+          description: Die Entitäten, die bei Anwesenheit eingeschaltet werden sollen.
+          selector:
+            target:
+              entity:
+                domain:
+                  - switch
+                  - light
+                  - media_player
+          default: {}
+        special_entities_on_presence:
+          name: Entitäten bei Anwesenheit nach Helligkeit einschalten
+          description: Die Entitäten, die bei Anwesenheit unter berücksichtigung der Helligkeit eingeschaltet werden sollen.
+          selector:
+            target:
+              entity:
+                domain:
+                  - switch
+                  - light
+                  - media_player
+          default: {}
+        custom_actions_on_presence:
+          name: Custom Actions
+          description: Hier kannst du Benutzerdefinierte Aktionen hinzufügen.
+          default: []
+          selector:
+            action: {}
+    not_home_settings:
+      name: Anwesend
+      icon: mdi:home-export-outline
+      description: Hier sind alle Einstellungen zur Abwesenheit zu finden.
+      collapsed: true
+      input:
+        entities_on_absence:
+          name: Entitäten bei Abwesenheit ausschalten
+          description: Die Entitäten, die bei Abwesenheit ausgeschaltet werden sollen.
+          selector:
+            target:
+              entity:
+                domain:
+                  - switch
+                  - light
+                  - media_player
+          default: {}
+        custom_actions_on_absence:
+          name: Custom Actions
+          description: Hier kannst du Benutzerdefinierte Aktionen hinzufügen.
+          default: []
+          selector:
+            action: {}
 
 trigger:
   - platform: state
@@ -87,11 +93,11 @@ trigger:
 variables:
   light_sensor: !input light_sensor
   brightness_threshold: !input brightness_threshold
-  binary_sensor: !input binary_sensor
   entities_on_presence: !input entities_on_presence
   special_entities_on_presence: !input special_entities_on_presence
+  custom_actions_on_presence: !input custom_actions_on_presence
   entities_on_absence: !input entities_on_absence
-  special_entities_on_absence: !input special_entities_on_absence
+  custom_actions_on_absence: !input custom_actions_on_absence
 
 condition: []
 
@@ -115,6 +121,12 @@ action:
                 sequence:
                   - service: homeassistant.turn_on
                     target: !input special_entities_on_presence
+          - choose:
+              - alias: Perform the custom actions
+                conditions:
+                - condition: template
+                  value_template: "{{ custom_actions_on_presence | length > 0 }}"
+                sequence: !input custom_actions_on_presence
       - conditions:
           - condition: template
             value_template: "{{ is_state(trigger.to_state.state, 'not_home') }}"
@@ -127,10 +139,10 @@ action:
                   - service: homeassistant.turn_off
                     target: !input entities_on_absence
           - choose:
-              - conditions:
-                  - condition: template
-                    value_template: "{{ binary_sensor and is_state(binary_sensor, 'off') and special_entities_on_absence | length > 0 }}"
-                sequence:
-                  - service: homeassistant.turn_off
-                    target: !input special_entities_on_absence
+              - alias: Perform the custom actions
+                conditions:
+                - condition: template
+                  value_template: "{{ custom_actions_on_absence | length > 0 }}"
+                sequence: !input custom_actions_on_absence
+
 mode: single
