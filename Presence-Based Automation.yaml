@@ -16,16 +16,56 @@ blueprint:
       selector:
         entity:
           domain: zone
+    entities_on_presence:
+      name: Entitäten bei Anwesenheit
+      description: Die Entitäten (Schalter und Lichter), die bei Anwesenheit eingeschaltet werden sollen.
+      selector:
+        target:
+          entity:
+            domain:
+              - switch
+              - light
+      default: []
+    special_entities_on_presence:
+      name: Besondere Entitäten bei Anwesenheit
+      description: Die Entitäten, die bei Anwesenheit unter speziellen Bedingungen eingeschaltet werden sollen.
+      selector:
+        target:
+          entity:
+            domain:
+              - switch
+              - light
+      default: []
+    entities_on_absence:
+      name: Entitäten bei Abwesenheit
+      description: Die Entitäten (Schalter und Lichter), die bei Abwesenheit ausgeschaltet werden sollen.
+      selector:
+        target:
+          entity:
+            domain:
+              - switch
+              - light
+      default: []
+    special_entities_on_absence:
+      name: Besondere Entitäten bei Abwesenheit
+      description: Die Entitäten, die bei Abwesenheit unter speziellen Bedingungen ausgeschaltet werden sollen.
+      selector:
+        target:
+          entity:
+            domain:
+              - switch
+              - light
+      default: []
     light_sensor:
       name: Licht Sensor
-      description: Der Lichtsensor, der für die Helligkeitsüberprüfung verwendet wird.
+      description: Der Lichtsensor, der für die Helligkeitsüberprüfung verwendet wird (optional).
       selector:
         entity:
           domain: sensor
       default: ""
     brightness_threshold:
       name: Helligkeits-Schwellenwert
-      description: Der Helligkeitswert, unter dem die Lichter eingeschaltet werden.
+      description: Der Helligkeitswert, unter dem die Lichter eingeschaltet werden (optional).
       selector:
         number:
           min: 0
@@ -33,61 +73,12 @@ blueprint:
           unit_of_measurement: "lx"
       default: 0
     binary_sensor:
-      name: Geräte Sensor
-      description: Der Binary-Sensor, dessen Status überprüft werden soll um Schalter bei abwesenheit nicht aus zu schalten.
+      name: Binary Sensor
+      description: Der Binary-Sensor, dessen Status überprüft werden soll (optional).
       selector:
         entity:
           domain: binary_sensor
       default: ""
-    switches_on_presence:
-      name: Schalter bei Anwesenheit
-      description: Die Switch-Entitäten, die bei Anwesenheit eingeschaltet werden sollen.
-      selector:
-        target:
-          entity:
-            domain: switch
-      default: {}
-    lights_on_presence_always:
-      name: Lichter bei Anwesenheit
-      description: Die Light-Entitäten, die immer bei Anwesenheit eingeschaltet werden sollen, unabhängig von der Helligkeit.
-      selector:
-        target:
-          entity:
-            domain: light
-      default: {}
-    lights_on_presence:
-      name: Lichter bei Anwesenheit abhängig von der Helligkeit
-      description: Die Light-Entitäten, die bei Anwesenheit eingeschaltet werden sollen, abhängig von der Helligkei
-      selector:
-        target:
-          entity:
-            domain: light
-      default: {}
-    switches_on_absence:
-      name: Schalter bei Abwesenheit
-      description: Die Switch-Entitäten, die bei Abwesenheit immer ausgeschaltet werden sollen.
-      selector:
-        target:
-          entity:
-            domain: switch
-      default: {}
-    lights_on_absence:
-      name: Lichter bei Abwesenheit
-      description: Die Light-Entitäten, die bei Abwesenheit immer ausgeschaltet werden sollen.
-      selector:
-        target:
-          entity:
-            domain: light
-      default: {}
-    conditional_switches_on_absence:
-      name: Switches bei Abwesenheit abhänging von einem Gerät
-      description: Die Switch-Entitäten, die nur ausgeschaltet werden, wenn ein Binary-Sensor den Status OFF hat.
-      selector:
-        target:
-          entity:
-            domain: switch
-      default: {}
-
 
 trigger:
   - platform: state
@@ -97,50 +88,41 @@ variables:
   zone_entity: !input zone_entity
   light_sensor: !input light_sensor
   brightness_threshold: !input brightness_threshold
-  switches_on_presence: !input switches_on_presence
-  lights_on_presence: !input lights_on_presence
-  lights_on_presence_always: !input lights_on_presence_always
-  switches_on_absence: !input switches_on_absence
-  lights_on_absence: !input lights_on_absence
-  conditional_switches_on_absence: !input conditional_switches_on_absence
+  entities_on_presence: !input entities_on_presence
+  special_entities_on_presence: !input special_entities_on_presence
+  entities_on_absence: !input entities_on_absence
+  special_entities_on_absence: !input special_entities_on_absence
   binary_sensor: !input binary_sensor
 
 condition: []
 
 action:
+  - delay: "00:00:10"
   - choose:
       - conditions:
           - condition: template
             value_template: "{{ trigger.entity_id in state_attr(zone_entity, 'persons') }}"
         sequence:
-          - service: switch.turn_on
-            target: !input switches_on_presence
-          - service: light.turn_on
-            target: !input lights_on_presence_always
-            data:
-              brightness_pct: 100
+          - service: homeassistant.turn_on
+            target: !input entities_on_presence
           - choose:
               - conditions:
                   - condition: template
                     value_template: "{{ light_sensor and (states(light_sensor) | float < brightness_threshold) }}"
                 sequence:
-                  - service: light.turn_on
-                    target: !input lights_on_presence
-                    data:
-                      brightness_pct: 100
+                  - service: homeassistant.turn_on
+                    target: !input special_entities_on_presence
       - conditions:
           - condition: template
             value_template: "{{ trigger.entity_id not in state_attr(zone_entity, 'persons') }}"
         sequence:
-          - service: switch.turn_off
-            target: !input switches_on_absence
-          - service: light.turn_off
-            target: !input lights_on_absence
+          - service: homeassistant.turn_off
+            target: !input entities_on_absence
           - choose:
               - conditions:
                   - condition: template
                     value_template: "{{ binary_sensor and is_state(binary_sensor, 'off') }}"
                 sequence:
-                  - service: switch.turn_off
-                    target: !input conditional_switches_on_absence
+                  - service: homeassistant.turn_off
+                    target: !input special_entities_on_absence
 mode: single
