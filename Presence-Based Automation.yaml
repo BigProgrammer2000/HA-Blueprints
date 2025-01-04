@@ -28,7 +28,8 @@ blueprint:
       default: 0
     binary_sensor:
       name: Binary Sensor
-      description: Der Binary-Sensor, dessen Status überprüft werden soll (optional). OFF = ausschalten; ON = nichts unternehmen
+      description: Der Binary-Sensor, dessen Status überprüft werden soll (optional).
+        OFF = ausschalten; ON = nichts unternehmen
       selector:
         entity:
           domain: binary_sensor
@@ -98,30 +99,38 @@ condition: []
 action:
   - choose:
       - conditions:
-          - condition: state
-            entity_id: trigger.entity_id
-            state: home
+          - condition: template
+            value_template: "{{ is_state(trigger.to_state.state, 'home') }}"
         sequence:
-          - service: homeassistant.turn_on
-            target: !input entities_on_presence
           - choose:
               - conditions:
                   - condition: template
-                    value_template: "{{ light_sensor and (states(light_sensor) | float < brightness_threshold) }}"
+                    value_template: "{{ entities_on_presence | length > 0 }}"
+                sequence:
+                  - service: homeassistant.turn_on
+                    target: !input entities_on_presence
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ light_sensor and (states(light_sensor) | float < brightness_threshold) and special_entities_on_presence | length > 0 }}"
                 sequence:
                   - service: homeassistant.turn_on
                     target: !input special_entities_on_presence
       - conditions:
-          - condition: state
-            entity_id: trigger.entity_id
-            state: not_home
+          - condition: template
+            value_template: "{{ is_state(trigger.to_state.state, 'not_home') }}"
         sequence:
-          - service: homeassistant.turn_off
-            target: !input entities_on_absence
           - choose:
               - conditions:
                   - condition: template
-                    value_template: "{{ binary_sensor and is_state(binary_sensor, 'off') }}"
+                    value_template: "{{ entities_on_absence | length > 0 }}"
+                sequence:
+                  - service: homeassistant.turn_off
+                    target: !input entities_on_absence
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ binary_sensor and is_state(binary_sensor, 'off') and special_entities_on_absence | length > 0 }}"
                 sequence:
                   - service: homeassistant.turn_off
                     target: !input special_entities_on_absence
