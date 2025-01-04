@@ -28,8 +28,7 @@ blueprint:
       default: 0
     binary_sensor:
       name: Binary Sensor
-      description: Der Binary-Sensor, dessen Status überprüft werden soll (optional).
-        OFF = ausschalten; ON = nichts unternehmen
+      description: Der Binary-Sensor, dessen Status überprüft werden soll (optional).\n OFF = ausschalten; ON = nichts unternehmen
       selector:
         entity:
           domain: binary_sensor
