@@ -61,7 +61,7 @@ blueprint:
           selector:
             action: {}
     not_home_settings:
-      name: Anwesend
+      name: Abwesend
       icon: mdi:home-export-outline
       description: Hier sind alle Einstellungen zur Abwesenheit zu finden.
       collapsed: true
