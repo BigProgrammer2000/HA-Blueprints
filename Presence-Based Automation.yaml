@@ -1,7 +1,7 @@
 blueprint:
   name: Presence-Based Automation
   description: >
-    Schaltet basierend auf der Anwesenheit oder Abwesenheit einer Person in einer bestimmten Zone beliebig viele Switch- und Light-Entitäten ein oder aus.
+    Schaltet basierend auf der Anwesenheit oder Abwesenheit einer Person Entitäten ein oder aus.
   domain: automation
   input:
     person_entity:
@@ -10,52 +10,6 @@ blueprint:
       selector:
         entity:
           domain: person
-    zone_entity:
-      name: Zone
-      description: Die Zone, die überwacht werden soll.
-      selector:
-        entity:
-          domain: zone
-    entities_on_presence:
-      name: Entitäten bei Anwesenheit
-      description: Die Entitäten (Schalter und Lichter), die bei Anwesenheit eingeschaltet werden sollen.
-      selector:
-        target:
-          entity:
-            domain:
-              - switch
-              - light
-      default: []
-    special_entities_on_presence:
-      name: Besondere Entitäten bei Anwesenheit
-      description: Die Entitäten, die bei Anwesenheit unter speziellen Bedingungen eingeschaltet werden sollen.
-      selector:
-        target:
-          entity:
-            domain:
-              - switch
-              - light
-      default: []
-    entities_on_absence:
-      name: Entitäten bei Abwesenheit
-      description: Die Entitäten (Schalter und Lichter), die bei Abwesenheit ausgeschaltet werden sollen.
-      selector:
-        target:
-          entity:
-            domain:
-              - switch
-              - light
-      default: []
-    special_entities_on_absence:
-      name: Besondere Entitäten bei Abwesenheit
-      description: Die Entitäten, die bei Abwesenheit unter speziellen Bedingungen ausgeschaltet werden sollen.
-      selector:
-        target:
-          entity:
-            domain:
-              - switch
-              - light
-      default: []
     light_sensor:
       name: Licht Sensor
       description: Der Lichtsensor, der für die Helligkeitsüberprüfung verwendet wird (optional).
@@ -74,34 +28,79 @@ blueprint:
       default: 0
     binary_sensor:
       name: Binary Sensor
-      description: Der Binary-Sensor, dessen Status überprüft werden soll (optional).
+      description: Der Binary-Sensor, dessen Status überprüft werden soll (optional). OFF = ausschalten; ON = nichts unternehmen
       selector:
         entity:
           domain: binary_sensor
       default: ""
+    entities_on_presence:
+      name: Entitäten bei Anwesenheit einschalten
+      description: Die Entitäten, die bei Anwesenheit eingeschaltet werden sollen.
+      selector:
+        target:
+          entity:
+            domain:
+              - switch
+              - light
+              - media_player
+      default: {}
+    special_entities_on_presence:
+      name: Entitäten bei Anwesenheit nach Helligkeit einschalten
+      description: Die Entitäten, die bei Anwesenheit unter berücksichtigung der Helligkeit eingeschaltet werden sollen.
+      selector:
+        target:
+          entity:
+            domain:
+              - switch
+              - light
+              - media_player
+      default: {}
+    entities_on_absence:
+      name: Entitäten bei Abwesenheit ausschalten
+      description: Die Entitäten, die bei Abwesenheit ausgeschaltet werden sollen.
+      selector:
+        target:
+          entity:
+            domain:
+              - switch
+              - light
+              - media_player
+      default: {}
+    special_entities_on_absence:
+      name: Entitäten bei Abwesenheit gesteuert ausschalten
+      description: Die Entitäten, die bei Abwesenheit unter berücksichtigung eines Binary-Sensors ausgeschaltet werden sollen.
+      selector:
+        target:
+          entity:
+            domain:
+              - switch
+              - light
+              - media_player
+      default: {}
 
 trigger:
   - platform: state
     entity_id: !input person_entity
+    from: null
+    to: null
 
 variables:
-  zone_entity: !input zone_entity
   light_sensor: !input light_sensor
   brightness_threshold: !input brightness_threshold
+  binary_sensor: !input binary_sensor
   entities_on_presence: !input entities_on_presence
   special_entities_on_presence: !input special_entities_on_presence
   entities_on_absence: !input entities_on_absence
   special_entities_on_absence: !input special_entities_on_absence
-  binary_sensor: !input binary_sensor
 
 condition: []
 
 action:
-  - delay: "00:00:10"
   - choose:
       - conditions:
-          - condition: template
-            value_template: "{{ trigger.entity_id in state_attr(zone_entity, 'persons') }}"
+          - condition: state
+            entity_id: trigger.entity_id
+            state: home
         sequence:
           - service: homeassistant.turn_on
             target: !input entities_on_presence
@@ -113,8 +112,9 @@ action:
                   - service: homeassistant.turn_on
                     target: !input special_entities_on_presence
       - conditions:
-          - condition: template
-            value_template: "{{ trigger.entity_id not in state_attr(zone_entity, 'persons') }}"
+          - condition: state
+            entity_id: trigger.entity_id
+            state: not_home
         sequence:
           - service: homeassistant.turn_off
             target: !input entities_on_absence
