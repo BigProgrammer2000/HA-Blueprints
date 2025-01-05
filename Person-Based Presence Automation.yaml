@@ -1,5 +1,5 @@
 blueprint:
-  name: Presence-Based Automation
+  name: Person-Based Presence Automation.yaml
   description: >
     Schaltet basierend auf der Anwesenheit oder Abwesenheit einer Person Entitäten ein oder aus.
   domain: automation
