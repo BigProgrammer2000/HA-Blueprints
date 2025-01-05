@@ -14,7 +14,7 @@ blueprint:
       name: Anwesend
       icon: mdi:home-import-outline
       description: Hier sind alle Einstellungen zur Anwesenheit zu finden.
-      collapsed: true
+      collapsed: false
       input:
         light_sensor:
           name: Licht Sensor
@@ -64,7 +64,7 @@ blueprint:
       name: Abwesend
       icon: mdi:home-export-outline
       description: Hier sind alle Einstellungen zur Abwesenheit zu finden.
-      collapsed: true
+      collapsed: false
       input:
         entities_on_absence:
           name: Entitäten bei Abwesenheit ausschalten
