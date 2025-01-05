@@ -6,14 +6,15 @@ blueprint:
   input:
     person_entity:
       name: Person Sensor
-      description: Der Personen-Sensor, der überwacht werden soll.
+      description: Der Personen-Sensor, der überwacht werden soll (Erforderlich).
       selector:
         entity:
           domain: person
     home_settings:
       name: Anwesend
       icon: mdi:home-import-outline
-      description: Hier sind alle Einstellungen zur Anwesenheit zu finden.
+      description: >
+        Hier sind alle Einstellungen zur Anwesenheit zu finden.
       collapsed: false
       input:
         light_sensor:
@@ -34,7 +35,7 @@ blueprint:
           default: 0
         entities_on_presence:
           name: Entitäten bei Anwesenheit einschalten
-          description: Die Entitäten, die bei Anwesenheit eingeschaltet werden sollen.
+          description: Die Entitäten, die bei Anwesenheit eingeschaltet werden sollen (optional).
           selector:
             target:
               entity:
@@ -45,7 +46,7 @@ blueprint:
           default: {}
         special_entities_on_presence:
           name: Entitäten bei Anwesenheit nach Helligkeit einschalten
-          description: Die Entitäten, die bei Anwesenheit unter berücksichtigung der Helligkeit eingeschaltet werden sollen.
+          description: Die Entitäten, die bei Anwesenheit unter berücksichtigung der Helligkeit eingeschaltet werden sollen (optional).
           selector:
             target:
               entity:
@@ -56,19 +57,20 @@ blueprint:
           default: {}
         custom_actions_on_presence:
           name: Custom Actions
-          description: Hier kannst du Benutzerdefinierte Aktionen hinzufügen.
+          description: Hier kannst du Benutzerdefinierte Aktionen hinzufügen (optional).
           default: []
           selector:
             action: {}
     not_home_settings:
       name: Abwesend
       icon: mdi:home-export-outline
-      description: Hier sind alle Einstellungen zur Abwesenheit zu finden.
+      description: >
+        Hier sind alle Einstellungen zur Abwesenheit zu finden.
       collapsed: false
       input:
         entities_on_absence:
           name: Entitäten bei Abwesenheit ausschalten
-          description: Die Entitäten, die bei Abwesenheit ausgeschaltet werden sollen.
+          description: Die Entitäten, die bei Abwesenheit ausgeschaltet werden sollen (optional).
           selector:
             target:
               entity:
@@ -79,7 +81,7 @@ blueprint:
           default: {}
         custom_actions_on_absence:
           name: Custom Actions
-          description: Hier kannst du Benutzerdefinierte Aktionen hinzufügen.
+          description: Hier kannst du Benutzerdefinierte Aktionen hinzufügen (optional).
           default: []
           selector:
             action: {}
