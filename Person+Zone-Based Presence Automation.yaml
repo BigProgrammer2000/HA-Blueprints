@@ -10,6 +10,12 @@ blueprint:
       selector:
         entity:
           domain: person
+    zone_entity:
+      name: Zonen Sensor
+      description: Der Zonen-Sensor, der überwacht werden soll (Erforderlich).
+      selector:
+        entity:
+          domain: zone
     home_settings:
       name: Anwesend
       icon: mdi:home-import-outline
@@ -94,6 +100,8 @@ trigger:
 
 variables:
   light_sensor: !input light_sensor
+  zone_entity: !input zone_entity
+  zone_state: "{{ states[zone_entity].name }}"
   brightness_threshold: !input brightness_threshold
   entities_on_presence: !input entities_on_presence
   special_entities_on_presence: !input special_entities_on_presence
@@ -101,13 +109,15 @@ variables:
   entities_on_absence: !input entities_on_absence
   custom_actions_on_absence: !input custom_actions_on_absence
 
-condition: []
+condition:
+  condition: template
+  value_template: "{{ (trigger.from_state.state == zone_state and trigger.to_state.state != zone_state) or (trigger.to_state.state == zone_state and trigger.from_state.state != zone_state) }}"
 
 action:
   - choose:
       - conditions:
           - condition: template
-            value_template: "{{ trigger.to_state.state == 'home' }}"
+            value_template: "{{ trigger.to_state.state == zone_state and trigger.from_state.state != zone_state }}"
         sequence:
           - choose:
               - conditions:
@@ -131,7 +141,7 @@ action:
                 sequence: !input custom_actions_on_presence
       - conditions:
           - condition: template
-            value_template: "{{ trigger.to_state.state == 'not_home' }}"
+            value_template: "{{ trigger.from_state.state == zone_state and trigger.to_state.state != zone_state }}"
         sequence:
           - choose:
               - conditions:
