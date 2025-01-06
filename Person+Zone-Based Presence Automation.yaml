@@ -111,11 +111,11 @@ variables:
 
 condition:
   condition: or
-    conditions:
-      - condition: template
-        value_template: "{{ trigger.to_state.state == zone_state and trigger.from_state.state != zone_state }}"
-      - condition: template
-        value_template: "{{ trigger.from_state.state == zone_state and trigger.to_state.state != zone_state }}"
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.to_state.state == zone_state and trigger.from_state.state != zone_state }}"
+    - condition: template
+      value_template: "{{ trigger.from_state.state == zone_state and trigger.to_state.state != zone_state }}"
 
 action:
   - choose:
