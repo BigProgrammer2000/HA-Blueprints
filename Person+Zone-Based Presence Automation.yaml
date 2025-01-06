@@ -101,7 +101,7 @@ trigger:
 variables:
   light_sensor: !input light_sensor
   zone_entity: !input zone_entity
-  zone_state: "{{ states[zone_entity].name }}"
+  zone_state: "{{ states[zone_entity].object_id }}"
   brightness_threshold: !input brightness_threshold
   entities_on_presence: !input entities_on_presence
   special_entities_on_presence: !input special_entities_on_presence
