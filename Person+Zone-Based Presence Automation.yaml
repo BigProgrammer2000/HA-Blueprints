@@ -110,12 +110,12 @@ variables:
   custom_actions_on_absence: !input custom_actions_on_absence
 
 condition:
-  condition: or
-  conditions:
-    - condition: template
-      value_template: "{{ trigger.to_state.state == zone_state and trigger.from_state.state != zone_state }}"
-    - condition: template
-      value_template: "{{ trigger.from_state.state == zone_state and trigger.to_state.state != zone_state }}"
+  - condition: or
+    conditions:
+      - condition: template
+        value_template: "{{ trigger.to_state.state == zone_state and trigger.from_state.state != zone_state }}"
+      - condition: template
+        value_template: "{{ trigger.from_state.state == zone_state and trigger.to_state.state != zone_state }}"
 
 action:
   - choose:
