@@ -101,27 +101,30 @@ trigger:
 variables:
   light_sensor: !input light_sensor
   zone_entity: !input zone_entity
-  zone_state: "{{ states[zone_entity].object_id }}"
+  zone_state: "{{ states[zone_entity].name | lower }}"
   brightness_threshold: !input brightness_threshold
   entities_on_presence: !input entities_on_presence
   special_entities_on_presence: !input special_entities_on_presence
   custom_actions_on_presence: !input custom_actions_on_presence
   entities_on_absence: !input entities_on_absence
   custom_actions_on_absence: !input custom_actions_on_absence
+  from_person_state: "{{ trigger.from_state.state | lower }}"
+  to_person_state: "{{ trigger.to_state.state | lower }}"
+  
 
 condition:
   - condition: or
     conditions:
       - condition: template
-        value_template: "{{ trigger.to_state.state == zone_state and trigger.from_state.state != zone_state }}"
+        value_template: "{{ to_person_state == zone_state and from_person_state != zone_state }}"
       - condition: template
-        value_template: "{{ trigger.from_state.state == zone_state and trigger.to_state.state != zone_state }}"
+        value_template: "{{ from_person_state == zone_state and to_person_state != zone_state }}"
 
 action:
   - choose:
       - conditions:
           - condition: template
-            value_template: "{{ trigger.to_state.state == zone_state and trigger.from_state.state != zone_state }}"
+            value_template: "{{ to_person_state == zone_state and from_person_state != zone_state }}"
         sequence:
           - choose:
               - conditions:
@@ -145,7 +148,7 @@ action:
                 sequence: !input custom_actions_on_presence
       - conditions:
           - condition: template
-            value_template: "{{ trigger.from_state.state == zone_state and trigger.to_state.state != zone_state }}"
+            value_template: "{{ from_person_state == zone_state and to_person_state != zone_state }}"
         sequence:
           - choose:
               - conditions:
