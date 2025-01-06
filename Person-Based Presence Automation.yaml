@@ -107,7 +107,7 @@ action:
   - choose:
       - conditions:
           - condition: template
-            value_template: "{{ is_state(trigger.to_state.state, 'home') }}"
+            value_template: "{{ trigger.to_state.state == 'home' }}"
         sequence:
           - choose:
               - conditions:
@@ -131,7 +131,7 @@ action:
                 sequence: !input custom_actions_on_presence
       - conditions:
           - condition: template
-            value_template: "{{ is_state(trigger.to_state.state, 'not_home') }}"
+            value_template: "{{ trigger.to_state.state == 'not_home' }}"
         sequence:
           - choose:
               - conditions:
