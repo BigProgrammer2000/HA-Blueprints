@@ -9,7 +9,7 @@ blueprint:
       description: Der Sensor, der die Zone überwacht (Erforderlich).
       selector:
         entity:
-          domain: sensor
+          domain: zone
     home_settings:
       name: Anwesend
       icon: mdi:home-import-outline
