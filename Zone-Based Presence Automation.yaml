@@ -1,0 +1,149 @@
+blueprint:
+  name: Zone-Based Presence Automation
+  description: >
+    Schaltet basierend auf dem Zustand eines Zonen-Sensors Entitäten ein oder aus und führt benutzerdefinierte Aktionen aus.
+  domain: automation
+  input:
+    zone_sensor:
+      name: Zonen-Sensor
+      description: Der Sensor, der die Zone überwacht (Erforderlich).
+      selector:
+        entity:
+          domain: sensor
+    home_settings:
+      name: Anwesend
+      icon: mdi:home-import-outline
+      description: >
+        Hier sind alle Einstellungen zur Anwesenheit zu finden.
+      collapsed: false
+      input:
+        light_sensor:
+          name: Licht Sensor
+          description: Der Lichtsensor, der für die Helligkeitsüberprüfung verwendet wird (optional).
+          selector:
+            entity:
+              domain: sensor
+          default: ""
+        brightness_threshold:
+          name: Helligkeits-Schwellenwert
+          description: Der Helligkeitswert, unter dem die Lichter eingeschaltet werden (optional).
+          selector:
+            number:
+              min: 0
+              max: 1000
+              unit_of_measurement: "lx"
+          default: 0
+        entities_on_presence:
+          name: Entitäten bei Anwesenheit einschalten
+          description: Die Entitäten, die bei Anwesenheit eingeschaltet werden sollen (optional).
+          selector:
+            target:
+              entity:
+                domain:
+                  - switch
+                  - light
+                  - media_player
+          default: {}
+        special_entities_on_presence:
+          name: Entitäten bei Anwesenheit nach Helligkeit einschalten
+          description: Die Entitäten, die bei Anwesenheit unter Berücksichtigung der Helligkeit eingeschaltet werden sollen (optional).
+          selector:
+            target:
+              entity:
+                domain:
+                  - switch
+                  - light
+                  - media_player
+          default: {}
+        custom_actions_on_presence:
+          name: Custom Actions
+          description: Hier kannst du Benutzerdefinierte Aktionen hinzufügen (optional).
+          default: []
+          selector:
+            action: {}
+    not_home_settings:
+      name: Abwesend
+      icon: mdi:home-export-outline
+      description: >
+        Hier sind alle Einstellungen zur Abwesenheit zu finden.
+      collapsed: false
+      input:
+        entities_on_absence:
+          name: Entitäten bei Abwesenheit ausschalten
+          description: Die Entitäten, die bei Abwesenheit ausgeschaltet werden sollen (optional).
+          selector:
+            target:
+              entity:
+                domain:
+                  - switch
+                  - light
+                  - media_player
+          default: {}
+        custom_actions_on_absence:
+          name: Custom Actions
+          description: Hier kannst du Benutzerdefinierte Aktionen hinzufügen (optional).
+          default: []
+          selector:
+            action: {}
+
+trigger:
+  - platform: state
+    entity_id: !input zone_sensor
+
+variables:
+  zone_state: "{{ states(trigger.entity_id) | int }}"
+  light_sensor: !input light_sensor
+  brightness_threshold: !input brightness_threshold
+  entities_on_presence: !input entities_on_presence
+  special_entities_on_presence: !input special_entities_on_presence
+  custom_actions_on_presence: !input custom_actions_on_presence
+  entities_on_absence: !input entities_on_absence
+  custom_actions_on_absence: !input custom_actions_on_absence
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ zone_state > 0 }}"
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ entities_on_presence | length > 0 }}"
+                sequence:
+                  - service: homeassistant.turn_on
+                    target: !input entities_on_presence
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ light_sensor and (states(light_sensor) | float < brightness_threshold) and special_entities_on_presence | length > 0 }}"
+                sequence:
+                  - service: homeassistant.turn_on
+                    target: !input special_entities_on_presence
+          - choose:
+              - alias: Perform the custom actions
+                conditions:
+                  - condition: template
+                    value_template: "{{ custom_actions_on_presence | length > 0 }}"
+                sequence: !input custom_actions_on_presence
+      - conditions:
+          - condition: template
+            value_template: "{{ zone_state == 0 }}"
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ entities_on_absence | length > 0 }}"
+                sequence:
+                  - service: homeassistant.turn_off
+                    target: !input entities_on_absence
+          - choose:
+              - alias: Perform the custom actions
+                conditions:
+                  - condition: template
+                    value_template: "{{ custom_actions_on_absence | length > 0 }}"
+                sequence: !input custom_actions_on_absence
+
+mode: single
