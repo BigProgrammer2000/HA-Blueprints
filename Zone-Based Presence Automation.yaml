@@ -89,6 +89,8 @@ blueprint:
 trigger:
   - platform: state
     entity_id: !input zone_sensor
+    from: null
+    to: null
 
 variables:
   zone_state: "{{ states(trigger.entity_id) | int }}"
