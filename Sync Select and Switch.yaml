@@ -35,7 +35,7 @@ action:
       - conditions:
           - condition: template
             value_template: >
-              {{ trigger.entity_id == switch_id and trigger.to_state.context.user_id is not none }}
+              {{ trigger.entity_id == switch_id and trigger.to_state.context.user_id != none }}
         sequence:
           - service: input_select.select_option
             target:
