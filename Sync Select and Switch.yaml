@@ -17,19 +17,20 @@ blueprint:
           domain: switch
     ignored_users:
       name: Ignorierte Benutzer
-      description: Benutzer-IDs, die bei manueller Bedienung ignoriert werden sollen
-      default: []
+      description: Eine Liste von Benutzer-IDs (eine pro Zeile)
+      default: ""
       selector:
-        target:
-          entity:
-            domain: user
+        text:
+          multiline: true
 
 mode: restart
 
 variables:
   select_id: !input select_entity
   switch_id: !input switch_entity
-  ignored_users: !input ignored_users
+  ignored_users_raw: !input ignored_users
+  ignored_users: >-
+    {{ ignored_users_raw.split('\n') | map('trim') | reject('equalto', '') | list }}
 
 trigger:
   - platform: state
