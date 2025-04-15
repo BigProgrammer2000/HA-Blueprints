@@ -1,6 +1,6 @@
 blueprint:
   name: Select und Schalter Synchronisierung
-  description: Synchronisiert einen input_select mit einem Schalter (switch). Wenn input_select auf Automatik steht, wird der Schalter nicht beeinflusst.
+  description: Synchronisiert einen input_select mit einem Schalter (switch). Wenn input_select auf Automatik steht, wird der Schalter nicht beeinflusst. Änderungen am Schalter beeinflussen den Select nur bei manueller Bedienung – ausgenommen definierte Benutzer.
   domain: automation
   input:
     select_entity:
@@ -15,12 +15,20 @@ blueprint:
       selector:
         entity:
           domain: switch
+    ignored_users:
+      name: Ignorierte Benutzer
+      description: Benutzer-IDs, die bei manueller Bedienung ignoriert werden sollen
+      default: []
+      selector:
+        object:
+          multiple: true
 
 mode: restart
 
 variables:
   select_id: !input select_entity
   switch_id: !input switch_entity
+  ignored_users: !input ignored_users
 
 trigger:
   - platform: state
@@ -35,7 +43,9 @@ action:
       - conditions:
           - condition: template
             value_template: >
-              {{ trigger.entity_id == switch_id and trigger.to_state.context.user_id != none }}
+              {{ trigger.entity_id == switch_id
+                 and trigger.to_state.context.user_id is not none
+                 and trigger.to_state.context.user_id not in ignored_users }}
         sequence:
           - service: input_select.select_option
             target:
