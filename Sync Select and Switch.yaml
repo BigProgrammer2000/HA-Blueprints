@@ -1,0 +1,88 @@
+blueprint:
+  name: Select und Schalter Synchronisierung
+  description: Synchronisiert einen input_select mit einem Schalter (switch). Wenn input_select auf Automatik steht, wird der Schalter nicht beeinflusst.
+  domain: automation
+  input:
+    select_entity:
+      name: Select Helfer
+      description: Wähle den input_select mit den Optionen Automatik, An, Aus
+      selector:
+        entity:
+          domain: input_select
+    switch_entity:
+      name: Schalter
+      description: Wähle den Schalter, der mit dem Select gekoppelt werden soll
+      selector:
+        entity:
+          domain: switch
+
+mode: restart
+
+variables:
+  select_id: !input select_entity
+  switch_id: !input switch_entity
+
+trigger:
+  - platform: state
+    entity_id: !input select_entity
+  - platform: state
+    entity_id: !input switch_entity
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: >
+              {{ trigger.entity_id == switch_id }}
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: !input switch_entity
+                    state: "on"
+                sequence:
+                  - service: input_select.select_option
+                    target:
+                      entity_id: !input select_entity
+                    data:
+                      option: "An"
+              - conditions:
+                  - condition: state
+                    entity_id: !input switch_entity
+                    state: "off"
+                sequence:
+                  - service: input_select.select_option
+                    target:
+                      entity_id: !input select_entity
+                    data:
+                      option: "Aus"
+
+      - conditions:
+          - condition: template
+            value_template: >
+              {{ trigger.entity_id == select_id }}
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: !input select_entity
+                    state: "An"
+                sequence:
+                  - service: switch.turn_on
+                    target:
+                      entity_id: !input switch_entity
+              - conditions:
+                  - condition: state
+                    entity_id: !input select_entity
+                    state: "Aus"
+                sequence:
+                  - service: switch.turn_off
+                    target:
+                      entity_id: !input switch_entity
+              - conditions:
+                  - condition: state
+                    entity_id: !input select_entity
+                    state: "Automatik"
+                sequence: []
