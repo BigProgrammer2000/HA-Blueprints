@@ -20,8 +20,9 @@ blueprint:
       description: Benutzer-IDs, die bei manueller Bedienung ignoriert werden sollen
       default: []
       selector:
-        object:
-          multiple: true
+        target:
+          entity:
+            domain: user
 
 mode: restart
 
