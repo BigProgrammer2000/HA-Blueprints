@@ -1,11 +1,11 @@
 blueprint:
   name: Select und Schalter Synchronisierung
-  description: Synchronisiert einen input_select mit einem Schalter (switch). Wenn input_select auf Automatik steht, wird der Schalter nicht beeinflusst. Änderungen am Schalter beeinflussen den Select nur bei manueller Bedienung – ausgenommen definierte Benutzer.
+  description: Synchronisiert einen input_select mit einem Schalter (switch). Wenn input_select auf Automatik steht, wird der Schalter abhängig vom Energieverbrauch geschaltet. Änderungen am Schalter beeinflussen den Select nur bei manueller Bedienung – ausgenommen definierte Benutzer.
   domain: automation
   input:
     select_entity:
       name: Select Helfer
-      description: Wähle den input_select mit den Optionen Automatik, Ein, Aus
+      description: Wähle den input_select mit den Optionen Automatik, An, Aus
       selector:
         entity:
           domain: input_select
@@ -22,12 +22,30 @@ blueprint:
       selector:
         text:
           multiline: true
+    power_sensor:
+      name: Energiesensor
+      description: Sensor mit der aktuellen Leistung (negativ = Einspeisung, positiv = Bezug)
+      selector:
+        entity:
+          domain: sensor
+    einspeisungsschwelle:
+      name: Schwellenwert Einspeisung
+      description: Schwellwert in Watt, unter dem der Schalter bei Automatik eingeschaltet wird
+      default: -100
+      selector:
+        number:
+          min: -2000
+          max: 1000
+          unit_of_measurement: W
+          mode: slider
 
 mode: restart
 
 variables:
   select_id: !input select_entity
   switch_id: !input switch_entity
+  power_sensor: !input power_sensor
+  einspeisungsschwelle: !input einspeisungsschwelle
   ignored_users_raw: !input ignored_users
   ignored_users: >-
     {{ ignored_users_raw.split('\n') | map('trim') | reject('equalto', '') | list }}
@@ -37,6 +55,10 @@ trigger:
     entity_id: !input select_entity
   - platform: state
     entity_id: !input switch_entity
+  - platform: state
+    entity_id: !input power_sensor
+    for:
+      seconds: 15
 
 condition: []
 
@@ -54,7 +76,7 @@ action:
               entity_id: !input select_entity
             data:
               option: >
-                {{ "Ein" if trigger.to_state.state == "on" else "Aus" }}
+                {{ "An" if trigger.to_state.state == "on" else "Aus" }}
 
       - conditions:
           - condition: template
@@ -65,7 +87,7 @@ action:
               - conditions:
                   - condition: template
                     value_template: >
-                      {{ trigger.to_state.state == "Ein" }}
+                      {{ trigger.to_state.state == "An" }}
                 sequence:
                   - service: switch.turn_on
                     target:
@@ -78,3 +100,25 @@ action:
                   - service: switch.turn_off
                     target:
                       entity_id: !input switch_entity
+              - conditions:
+                  - condition: template
+                    value_template: >
+                      {{ trigger.to_state.state == "Automatik" }}
+                sequence:
+                  - choose:
+                      - conditions:
+                          - condition: template
+                            value_template: >
+                              {{ states(power_sensor) | float(default=9999) < einspeisungsschwelle }}
+                        sequence:
+                          - service: switch.turn_on
+                            target:
+                              entity_id: !input switch_entity
+                      - conditions:
+                          - condition: template
+                            value_template: >
+                              {{ states(power_sensor) | float(default=0) >= einspeisungsschwelle }}
+                        sequence:
+                          - service: switch.turn_off
+                            target:
+                              entity_id: !input switch_entity
