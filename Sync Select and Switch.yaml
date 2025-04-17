@@ -5,7 +5,7 @@ blueprint:
   input:
     select_entity:
       name: Select Helfer
-      description: Wähle den input_select mit den Optionen Automatik, An, Aus
+      description: Wähle den input_select mit den Optionen Automatik, Ein, Aus
       selector:
         entity:
           domain: input_select
@@ -76,7 +76,7 @@ action:
               entity_id: !input select_entity
             data:
               option: >
-                {{ "An" if trigger.to_state.state == "on" else "Aus" }}
+                {{ "Ein" if trigger.to_state.state == "on" else "Aus" }}
 
       - conditions:
           - condition: template
@@ -87,7 +87,7 @@ action:
               - conditions:
                   - condition: template
                     value_template: >
-                      {{ trigger.to_state.state == "An" }}
+                      {{ trigger.to_state.state == "Ein" }}
                 sequence:
                   - service: switch.turn_on
                     target:
