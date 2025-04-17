@@ -55,10 +55,6 @@ trigger:
     entity_id: !input select_entity
   - platform: state
     entity_id: !input switch_entity
-  - platform: state
-    entity_id: !input power_sensor
-    for:
-      seconds: 15
 
 condition: []
 
