@@ -17,6 +17,8 @@ max_exceeded: silent
 trigger:
   - platform: state
     entity_id: !input switches
+    from: null
+    to: null
 
 variables:
   new_state: "{{ trigger.to_state.state }}"
