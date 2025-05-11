@@ -1,0 +1,42 @@
+blueprint:
+  name: Switch Group Synchronization
+  description: Synchronize multiple switches.
+  domain: automation
+  input:
+    switches:
+      name: Switches
+      description: All switches to synchronize
+      selector:
+        entity:
+          domain: switch
+          multiple: true
+
+mode: restart
+max_exceeded: silent
+
+trigger:
+  - platform: state
+    entity_id: !input switches
+
+variables:
+  new_state: "{{ trigger.to_state.state }}"
+  all_switches: !input switches
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ new_state == 'on' }}"
+        sequence:
+          - service: switch.turn_on
+            target:
+              entity_id: >
+                {{ all_switches | reject('equalto', trigger.entity_id) | list }}
+      - conditions:
+          - condition: template
+            value_template: "{{ new_state == 'off' }}"
+        sequence:
+          - service: switch.turn_off
+            target:
+              entity_id: >
+                {{ all_switches | reject('equalto', trigger.entity_id) | list }}
